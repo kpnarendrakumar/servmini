@@ -11,10 +11,7 @@ import chalk from "chalk";
 
 dotenv.config();
 
-const banner = figlet.textSync("ServMini", {
-  font: "Standard",
-  horizontalLayout: "full",
-});
+const banner = figlet.textSync("ServMini", { font: "Standard" });
 console.log(instagram(banner));
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,7 +30,7 @@ const inferProvider = (key) => {
 program
   .name("servmini")
   .description("Transform Node.js Express apps to Serverless functions")
-  .version("1.2.2")
+  .version("1.2.3")
   .argument("<inputDir>", "Path to your Express server directory")
   .option(
     "--target <platform>",
@@ -46,7 +43,7 @@ program
   .option("--model <model>", "Model to use with selected AI provider")
   .option("--prompt <prompt>", "Custom prompt template for AI")
   .option("--ext <ext>", "Output file extension: js | ts", "js")
-  .option("--force-ext <ext>", "Force output file extension: js | ts | tsx")
+  .option("--force-ext <ext>", "Force output file extension: .js | .ts | .tsx")
   .option("--review", "Enable AI review mode", false)
   .action(async (inputDir, options) => {
     const absPath = path.resolve(process.cwd(), inputDir);
@@ -78,6 +75,7 @@ program
       totalSkipped.push(...result.skipped);
     }
 
+    // Final Summary
     console.log(chalk.cyan(`\n📦 Summary:`));
     console.log(chalk.green(`✅ Converted: ${totalConverted} file(s)`));
     console.log(chalk.yellow(`⚠️  Skipped: ${totalSkipped.length} file(s)`));
@@ -88,8 +86,8 @@ program
       }
     }
 
-    console.log(`🔍 Found ${files.length} file(s) in ${absPath}`);
-    console.log("✅ Conversion complete.\n");
+    console.log(`🔍 Found ${files.length} files in ${absPath}`);
+    console.log("✅ Conversion complete.");
   });
 
 program.parse();
