@@ -7,11 +7,13 @@ import { transformToServerless } from "../lib/transformer.js";
 import figlet from "figlet";
 import { instagram } from "gradient-string";
 import dotenv from "dotenv";
+import chalk from "chalk";
 
 dotenv.config();
 
 const banner = figlet.textSync("ServMini", {
   font: "Standard",
+
   horizontalLayout: "full",
 });
 console.log(instagram(banner));
@@ -44,10 +46,39 @@ program
   .option("--apikey <key>", "API key for the selected AI provider")
   .option("--model <model>", "Model to use with selected AI provider")
   .option("--prompt <prompt>", "Custom prompt template for AI")
+  .option("--ext <ext>", "Output file extension: js | ts", "js")
+  .option("--force-ext <ext>", "Force output file extension: .js | .ts | .tsx")
+
   .option("--review", "Enable AI review mode", false)
   .action(async (inputDir, options) => {
     const absPath = path.resolve(process.cwd(), inputDir);
     const files = await scanRoutes(absPath);
+
+    let totalConverted = 0;
+    let totalSkipped = [];
+
+    for (const file of files) {
+      const result = await transformToServerless(
+        file,
+        options.target,
+        options.review,
+        aiOptions,
+        options.forceExt
+      );
+      totalConverted += result.converted;
+      totalSkipped.push(...result.skipped);
+    }
+
+    // Final Summary
+    console.log(chalk.cyan(`\n📦 Summary:`));
+    console.log(chalk.green(`✅ Converted: ${totalConverted} file(s)`));
+    console.log(chalk.yellow(`⚠️  Skipped: ${totalSkipped.length} file(s)`));
+
+    if (totalSkipped.length > 0) {
+      for (const skip of totalSkipped) {
+        console.log(chalk.dim(`- ${skip.file}: ${skip.reason}`));
+      }
+    }
 
     console.log(`🔍 Found ${files.length} files in ${absPath}`);
 
