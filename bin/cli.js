@@ -33,7 +33,7 @@ const inferProvider = (key) => {
 program
   .name("servmini")
   .description("Transform Node.js Express apps to Serverless functions")
-  .version("1.2.1")
+  .version("1.2.2")
   .argument("<inputDir>", "Path to your Express server directory")
   .option(
     "--target <platform>",
