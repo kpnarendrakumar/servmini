@@ -11,7 +11,10 @@ import chalk from "chalk";
 
 dotenv.config();
 
-const banner = figlet.textSync("ServMini", { font: "Standard" });
+const banner = figlet.textSync("ServMini", {
+  font: "Standard",
+  horizontalLayout: "full",
+});
 console.log(instagram(banner));
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,25 +32,26 @@ const inferProvider = (key) => {
 
 program
   .name("servmini")
-  .description("Transform Node.js Express apps to Serverless functions")
-  .version("1.2.7")
-  .argument("<inputDir>", "Path to your Express server directory")
+  .description("Convert Express route files to Serverless functions")
+  .version("1.1.1")
+  .argument("<inputDir>", "Path to Express project")
   .option(
     "--target <platform>",
     "Target platform: vercel | netlify | aws",
     "vercel"
   )
-  .option("--save-review", "Save AI review as .md next to output", false)
-  .option("--provider <provider>", "AI provider to use for --review")
-  .option("--apikey <key>", "API key for the selected AI provider")
-  .option("--model <model>", "Model to use with selected AI provider")
-  .option("--prompt <prompt>", "Custom prompt template for AI")
-  .option("--ext <ext>", "Output file extension: js | ts", "js")
-  .option("--force-ext <ext>", "Force output file extension: .js | .ts | .tsx")
+  .option("--save-review", "Save AI review as .md file", false)
+  .option("--provider <provider>", "AI provider")
+  .option("--apikey <key>", "API key")
+  .option("--model <model>", "Model to use")
+  .option("--prompt <prompt>", "Custom AI prompt")
+  .option("--ext <ext>", "Output extension: js | ts", "js")
+  .option("--force-ext <ext>", "Force output file extension")
   .option("--review", "Enable AI review mode", false)
+  .option("--debug", "Enable debug logs", false)
   .action(async (inputDir, options) => {
     const absPath = path.resolve(process.cwd(), inputDir);
-    const files = await scanRoutes(absPath);
+    const files = await scanRoutes(absPath, options.debug);
 
     const aiOptions = {
       provider:
@@ -69,21 +73,19 @@ program
         options.target,
         options.review,
         aiOptions,
-        options.forceExt || options.ext
+        options.forceExt,
+        options.debug
       );
       totalConverted += result.converted;
       totalSkipped.push(...result.skipped);
     }
 
-    // Final Summary
     console.log(chalk.cyan(`\n📦 Summary:`));
     console.log(chalk.green(`✅ Converted: ${totalConverted} file(s)`));
     console.log(chalk.yellow(`⚠️  Skipped: ${totalSkipped.length} file(s)`));
 
-    if (totalSkipped.length > 0) {
-      for (const skip of totalSkipped) {
-        console.log(chalk.dim(`- ${skip.file}: ${skip.reason}`));
-      }
+    for (const skip of totalSkipped) {
+      console.log(chalk.dim(`- ${skip.file}: ${skip.reason}`));
     }
 
     console.log(`🔍 Found ${files.length} files in ${absPath}`);
