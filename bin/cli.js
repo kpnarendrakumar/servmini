@@ -2,12 +2,13 @@
 import { program } from "commander";
 import path from "path";
 import { fileURLToPath } from "url";
-import { scanRoutes } from "../lib/scanner.js";
-import { transformToServerless } from "../lib/transformer.js";
-import figlet from "figlet";
-import { instagram } from "gradient-string";
 import dotenv from "dotenv";
 import chalk from "chalk";
+import figlet from "figlet";
+import { instagram } from "gradient-string";
+
+import { scanRoutes } from "../lib/scanner.js";
+import { transformToServerless } from "../lib/transformer.js";
 
 dotenv.config();
 
@@ -20,49 +21,21 @@ console.log(instagram(banner));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const inferProvider = (key) => {
-  if (!key) return null;
-  if (key.startsWith("sk-or-")) return "openrouter";
-  if (key.startsWith("sk-")) return "openai";
-  if (key.startsWith("claude-") || key.includes("anthropic")) return "claude";
-  if (key.startsWith("fw_")) return "fireworks";
-  if (key.startsWith("ollama://")) return "ollama";
-  return null;
-};
-
 program
   .name("servmini")
   .description("Convert Express route files to Serverless functions")
-  .version("1.1.1")
+  .version("1.2.11")
   .argument("<inputDir>", "Path to Express project")
   .option(
     "--target <platform>",
-    "Target platform: vercel | netlify | aws",
+    "Target platform (vercel/netlify/aws)",
     "vercel"
   )
-  .option("--save-review", "Save AI review as .md file", false)
-  .option("--provider <provider>", "AI provider")
-  .option("--apikey <key>", "API key")
-  .option("--model <model>", "Model to use")
-  .option("--prompt <prompt>", "Custom AI prompt")
-  .option("--ext <ext>", "Output extension: js | ts", "js")
-  .option("--force-ext <ext>", "Force output file extension")
-  .option("--review", "Enable AI review mode", false)
-  .option("--debug", "Enable debug logs", false)
+  .option("--debug", "Enable debug output", false)
+  .option("--force-ext <ext>", "Force output file extension", "js")
   .action(async (inputDir, options) => {
     const absPath = path.resolve(process.cwd(), inputDir);
     const files = await scanRoutes(absPath, options.debug);
-
-    const aiOptions = {
-      provider:
-        options.provider ||
-        inferProvider(options.apikey) ||
-        process.env.AI_PROVIDER,
-      apiKey: options.apikey || process.env.AI_API_KEY,
-      model: options.model || process.env.AI_MODEL,
-      promptTemplate: options.prompt,
-      saveReview: options.saveReview,
-    };
 
     let totalConverted = 0;
     let totalSkipped = [];
@@ -71,8 +44,8 @@ program
       const result = await transformToServerless(
         file,
         options.target,
-        options.review,
-        aiOptions,
+        false, // review mode disabled
+        {}, // no AI config
         options.forceExt,
         options.debug
       );
@@ -81,15 +54,11 @@ program
     }
 
     console.log(chalk.cyan(`\n📦 Summary:`));
-    console.log(chalk.green(`✅ Converted: ${totalConverted} file(s)`));
-    console.log(chalk.yellow(`⚠️  Skipped: ${totalSkipped.length} file(s)`));
-
+    console.log(chalk.green(`✅ Converted: ${totalConverted}`));
+    console.log(chalk.yellow(`⚠️ Skipped: ${totalSkipped.length}`));
     for (const skip of totalSkipped) {
       console.log(chalk.dim(`- ${skip.file}: ${skip.reason}`));
     }
-
-    console.log(`🔍 Found ${files.length} files in ${absPath}`);
-    console.log("✅ Conversion complete.");
   });
 
 program.parse();

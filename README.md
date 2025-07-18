@@ -1,212 +1,170 @@
+🚀 ServMini
+ServMini is a powerful CLI tool to transform your Express.js routes into serverless functions (for Vercel, Netlify, or AWS Lambda) — with optional AI-powered code reviews using OpenAI, Claude, Ollama, and more.
 
-# 🚀 ServMini
+✨ Features
+✅ Converts routes/\*.js to serverless-ready functions
+✅ Supports .js, .ts, .tsx
+✅ Targets: Vercel, Netlify, AWS Lambda
+✅ Preserves folder structure and relative imports
+✅ Optional AI code reviews using OpenAI, Claude, Ollama, OpenRouter
+✅ Saves AI feedback as .md (optional)
+✅ Auto-detects AI provider based on API key
+✅ CLI-friendly and modular
+✅ Extensible via plugin architecture (upcoming)
 
-> Convert your Express.js apps into serverless-ready functions (for Vercel, Netlify, AWS, etc.) with optional AI code reviews.
-
----
-
-![Banner](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Node](https://img.shields.io/badge/node-%3E=18.x-green)
-
----
-
-## 🌟 Overview
-
-**ServMini** transforms traditional Express.js applications (with routes, controllers, middleware, etc.) into **platform-ready serverless functions**. Perfect for modern deployment platforms like **Vercel**, **Netlify**, or **AWS Lambda**.
-
----
-
-## ✅ Key Features
-
-- 🧠 **AI-powered code review** (OpenAI, Claude, DeepSeek, Ollama, OpenRouter)
-- 🔧 Converts `routes/*.js` + `controllers/*.js` pattern
-- 📂 Preserves folder structure and relative imports
-- 🎯 Targets: Vercel, Netlify, AWS
-- 🧪 Supports `.js`, `.ts`, `.tsx`
-- 📦 Global CLI (`servmini`)
-- 📑 Save AI review as `.md`
-- 🔍 Auto-detect AI provider from API key
-- 🧬 Automatically scans and transforms all route files
-
----
-
-## 📦 Installation
-
-### Global (Recommended)
-
-```bash
+📦 Installation
+Global (Recommended)
+bash
+Copy
+Edit
 npm install -g servmini
-```
-````
-
-Or from local dev folder:
-
-```bash
+From Source (Local Development)
+bash
+Copy
+Edit
 git clone https://github.com/kpnarendrakumar/servmini.git
 cd servmini
 npm install
-npm link  # 👈 Makes it globally available as `servmini`
-```
+npm link
+Now you can run it globally using:
 
----
-
-## 🚀 Usage
-
-### CLI Command
-
-```bash
+bash
+Copy
+Edit
+servmini
+🚀 Usage
+Basic CLI Command
+bash
+Copy
+Edit
 servmini <inputDir> [options]
-```
+Example (AI Review Enabled)
+bash
+Copy
+Edit
+servmini ./backend \
+ --target vercel \
+ --review \
+ --apikey sk-or-xxxxxxxxxxxxxxxx \
+ --save-review \
+ --out-dir converted
+⚙️ CLI Options
+Flag Description Default
+--target Deployment target: vercel, netlify, aws vercel
+--ext Output file extension: js, ts, tsx js
+--force-ext Force file extension override
+--out-dir Custom output directory converted/
+--review Enable AI code review false
+--save-review Save AI feedback to .md file false
+--provider AI provider: openai, openrouter, claude, ollama, etc. Auto-detect
+--apikey API key for AI provider (can also use .env)
+--model Model to use (e.g., gpt-4, deepseek/deepseek-r1) Provider default
+--prompt Custom prompt for AI reviewer Predefined
+--experimental Use experimental transformer engine (convert.js pipeline) (optional) false
+--debug Enable verbose logging false
 
-### Example
+🧪 Example Express App
+js
+Copy
+Edit
+// backend/routes/example.js
+import express from 'express';
+const router = express.Router();
 
-```bash
-servmini ./backend --target vercel --review --apikey sk-or-... --save-review
-```
+router.get('/hello', (req, res) => {
+res.send('Hello, world!');
+});
 
----
-
-## ⚙️ Options
-
-| Flag            | Description                                   | Default      |
-| --------------- | --------------------------------------------- | ------------ |
-| `--target`      | Deployment target: `vercel`, `netlify`, `aws` | `vercel`     |
-| `--review`      | Enable AI review of converted code            | `false`      |
-| `--apikey`      | API key for selected AI provider              | Uses `.env`  |
-| `--provider`    | Optional provider override                    | Auto-detects |
-| `--model`       | Model to use (e.g., `deepseek/deepseek-r1`)   | Auto         |
-| `--prompt`      | Custom prompt for AI feedback                 | Predefined   |
-| `--save-review` | Save AI feedback as `.md` file                | `false`      |
-
----
-
-## 📁 Output Structure
-
-### For `--target vercel`:
-
-```
-output/
+export default router;
+Convert to Vercel Function
+bash
+Copy
+Edit
+servmini ./backend --target vercel
+📁 Output Example
+--target vercel
+markdown
+Copy
+Edit
+converted/
 └── api/
-    ├── hello.js
-    └── submit.js
-```
+└── hello.js
+--target netlify
+Copy
+Edit
+converted/
+└── hello.js
+🧠 AI Review Setup
+Supported Providers
+Provider Key Prefix Example Model
+OpenAI sk- gpt-4, gpt-3.5-turbo
+OpenRouter sk-or- deepseek/deepseek-r1, mistral
+Claude claude- or anthropic claude-3-opus
+Fireworks fw\_ accounts/fireworks/models/llama-v2
+Ollama ollama:// ollama://mistral
 
-### For `--target netlify`:
+You can skip AI review by omitting --review.
 
-```
-output/
-├── hello.js
-└── submit.js
-```
+📄 .env Example
+Instead of passing keys in CLI:
 
----
-
-## 📄 .env Example
-
-Create a `.env` file in the root directory to avoid passing credentials every time:
-
-```env
-AI_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+env
+Copy
+Edit
+AI_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxx
 AI_PROVIDER=openrouter
 AI_MODEL=deepseek/deepseek-r1-0528:free
-```
-
----
-
-## 💻 Dev Workflow
-
-1. Clone and install dependencies:
-
-```bash
-git clone https://github.com/kpnarendrakumar/servmini.git
-cd servmini
-npm install
-```
-
-2. Test locally:
-
-```bash
+🔧 Developer Mode
+Test Locally
+bash
+Copy
+Edit
 node ./bin/cli.js ./test --target vercel
-```
-
-3. Link to make CLI available globally:
-
-```bash
+Link CLI Globally
+bash
+Copy
+Edit
 npm link
 servmini ./test --review
-```
+🧬 Roadmap
+Vercel/Netlify/AWS support
 
----
+AI review with multiple providers
 
-## 🧠 AI Review Setup
+Save .md AI reports
 
-### Supported Providers:
+Auto-deploy to Vercel/Netlify
 
-| Provider   | Key Prefix               | Example Model                        |
-| ---------- | ------------------------ | ------------------------------------ |
-| OpenAI     | `sk-`                    | `gpt-4`                              |
-| OpenRouter | `sk-or-`                 | `deepseek/deepseek-r1-0528:free`     |
-| Claude     | `claude-` or `anthropic` | `claude-3-opus`                      |
-| Fireworks  | `fw_`                    | `accounts/fireworks/models/llama-v2` |
-| Ollama     | `ollama://`              | `ollama://mistral`                   |
+GitHub Action for CI pipelines
 
-> You can skip AI review by omitting `--review`.
+Plugin support for custom transformations
 
----
+GUI version for non-devs
 
-## 🧪 Testing
+🙌 Contributing
+bash
+Copy
+Edit
 
-### Sample Express App:
+# Fork the repo and clone locally
 
-```js
-// test/app.js
-import express from "express";
-const app = express();
+git clone https://github.com/kpnarendrakumar/servmini.git
 
-app.get("/hello", (req, res) => res.send("Hello from Express!"));
-app.post("/submit", (req, res) => res.json({ received: true }));
+# Create a branch
 
-export default app;
-```
+git checkout -b feature/awesome-feature
 
-### Run CLI:
+# Make changes and commit
 
-```bash
-servmini ./test --target vercel --review --apikey sk-or-xxx
-```
+git commit -m "✨ Add awesome feature"
 
----
+# Push and open PR
 
-## 🛠️ Roadmap / Future Ideas
+git push origin feature/awesome-feature
+📜 License
+MIT License © 2025 [KP Narendra Kumar]
 
-- [ ] GUI wrapper for non-devs
-- [ ] Plugin system for custom transformers
-- [ ] Auto-deploy to Vercel/Netlify from CLI
-- [ ] GitHub Action Integration
-- [ ] Diff view of before/after code
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create a feature branch:
-   `git checkout -b feature/awesome-thing`
-3. Commit your changes:
-   `git commit -m 'Add awesome feature'`
-4. Push and open a Pull Request 🎉
-
----
-
-## 📄 License
-
-MIT License © KP Narendra Kumar
-
----
-
-## ✨ Author
-
-**ServMini** was built with ❤️ to make Express-to-Serverless conversion instant, intelligent, and seamless.
-
-> Built by KP Narendra Kumar(https://github.com/kpnarendrakumar)
+🌍 Author
+KP Narendra Kumar
+GitHub: @kpnarendrakumar
+Twitter: @narendrakumarkp
